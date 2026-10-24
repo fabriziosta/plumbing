@@ -222,6 +222,8 @@ SSHCONFIGEOF
 				podmanArgs += "    -v \"${BUILD_DIR@Q}/volumes/" + volume.Name + ":" + volume.MountPath + ":Z\" \\\n"
 			}
 		}
+		// Ensure .docker exists so rsync does not fail when no pull-secret was mounted.
+		ret += "\n  mkdir -p \"$HOME/.docker\""
 		ret += "\n  rsync --timeout=300 -razW  \"$HOME/.docker/\" \"$SSH_HOST:$BUILD_DIR/.docker/\""
 		podmanArgs += "    -v \"${BUILD_DIR@Q}/.docker/:/root/.docker:Z\" \\\n"
 		ret += "\n  rsync --timeout=300 -razW  \"/tekton/results/\" \"$SSH_HOST:$BUILD_DIR/results/\""

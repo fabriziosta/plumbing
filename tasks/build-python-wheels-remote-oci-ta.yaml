@@ -194,6 +194,7 @@ spec:
 
         rsync --timeout=300 -razW /var/workdir/ "$SSH_HOST:$BUILD_DIR/volumes/workdir/"
         rsync --timeout=300 -razW /mnt/trusted-ca/ "$SSH_HOST:$BUILD_DIR/volumes/trusted-ca/"
+        mkdir -p "$HOME/.docker"
         rsync --timeout=300 -razW  "$HOME/.docker/" "$SSH_HOST:$BUILD_DIR/.docker/"
         rsync --timeout=300 -razW  "/tekton/results/" "$SSH_HOST:$BUILD_DIR/results/"
       fi
