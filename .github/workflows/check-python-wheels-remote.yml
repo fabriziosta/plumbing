@@ -1,0 +1,34 @@
+name: Validate PR - python-wheels-remote
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "tasks/build-python-wheels-oci-ta.yaml"
+      - "tasks/build-python-wheels-remote-oci-ta.yaml"
+      - "task-generator/remote/**"
+      - "hack/generate-python-wheels-remote.sh"
+      - ".github/workflows/check-python-wheels-remote.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  check-remote:
+    name: Check Python Wheels Remote
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Install Go
+        uses: actions/setup-go@v6
+        with:
+          go-version-file: "./task-generator/remote/go.mod"
+      - name: Check python-wheels remote is up to date
+        run: |
+          ./hack/generate-python-wheels-remote.sh
+          if [[ -n $(git status -s) ]]; then
+            echo "build-python-wheels-remote-oci-ta is not up to date, run ./hack/generate-python-wheels-remote.sh"
+            git status -s
+            git --no-pager diff
+            exit 1
+          fi

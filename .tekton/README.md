@@ -42,6 +42,12 @@ There is a dependency between the `Components`. For example, the builder image i
 build-python-wheels task. A change in the builder image requires not only building a new image, but
 also building a new Tekton bundle for that `Task` that uses the new builder image.
 
+The MPC remote variant `build-python-wheels-remote-oci-ta` (component
+`task-build-python-wheels-remote`) is **generated** from
+`tasks/build-python-wheels-oci-ta.yaml` via `./hack/generate-python-wheels-remote.sh`.
+Do not hand-edit the remote YAML; regenerate after changing the vanilla task, then
+rebuild both task bundles.
+
 The `npm-builder` image is built the same way as `plumbing-builder`. The Tekton task
 `build-npm-package-oci-ta` (component `task-build-npm-package`) is consumed by the
 `npm-registry` onboarding repo (PR and on-push rebuilds).

@@ -13,6 +13,7 @@ rule_data:
   trusted_task_rules:
     allow:
       calunga-build-tasks:
+        # Covers task-build-python-wheels and task-build-python-wheels-remote
         - pattern: oci://quay.io/redhat-user-workloads/calunga-tenant/task-build-python-wheels*
         - pattern: oci://quay.io/redhat-user-workloads/calunga-tenant/task-sast-snyk-check-sdist*
         - pattern: oci://quay.io/redhat-user-workloads/calunga-tenant/task-build-npm-package*
