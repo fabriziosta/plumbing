@@ -39,10 +39,6 @@ import (
 
 const remoteBuildStep = "build-wheels"
 
-// Same orchestration image as buildah-remote: provides ssh, rsync, curl.
-// The wheel builder image is passed separately as BUILDER_IMAGE for podman on the VM.
-const remoteOrchestrationImage = "quay.io/konflux-ci/konflux-build-cli@sha256:42809082a271a037f0774af81e536d9f7d03cf0236634ff44b1c5f85b7fa2216"
-
 func main() {
 	var sourceTask string
 	var remoteTask string
@@ -176,6 +172,13 @@ mkdir -p scripts
 if ! [[ $IS_LOCALHOST ]]; then
   echo "[$(date --utc -Ins)] Setup VM"
 
+  # plumbing-builder has build-wheels but not ssh/rsync. Install only for real
+  # remote VMs. MPC often sets host=localhost for linux/x86_64 (in-cluster),
+  # which skips this block and runs build-wheels directly in this image.
+  if ! command -v ssh >/dev/null 2>&1 || ! command -v rsync >/dev/null 2>&1; then
+    dnf install -y openssh-clients rsync
+  fi
+
   chmod 0400 ~/.ssh/id_rsa
 
   # Share a single ssh connection to the build VM between every ssh and rsync
@@ -300,9 +303,6 @@ echo "[$(date --utc -Ins)] End remote"`
 		}
 		step.Script = ret
 		builderImage = step.Image
-		// Orchestration (ssh/rsync) runs in konflux-build-cli, same as buildah-remote.
-		// The remote podman run still uses BUILDER_IMAGE (plumbing-builder).
-		step.Image = remoteOrchestrationImage
 		step.VolumeMounts = append(step.VolumeMounts, v1.VolumeMount{
 			Name:      "ssh",
 			ReadOnly:  true,

@@ -126,7 +126,7 @@ spec:
         secretKeyRef:
           key: password
           name: $(params.SERVICE_ACCOUNT_SECRET_NAME)
-    image: quay.io/konflux-ci/konflux-build-cli@sha256:42809082a271a037f0774af81e536d9f7d03cf0236634ff44b1c5f85b7fa2216
+    image: quay.io/redhat-user-workloads/calunga-tenant/plumbing-builder@sha256:8f85ac614755e61319c90a9172e8672e9da36f672178cdc54927920fb4d65aa8
     name: build-wheels
     script: |-
       #!/bin/bash
@@ -162,6 +162,13 @@ spec:
 
       if ! [[ $IS_LOCALHOST ]]; then
         echo "[$(date --utc -Ins)] Setup VM"
+
+        # plumbing-builder has build-wheels but not ssh/rsync. Install only for real
+        # remote VMs. MPC often sets host=localhost for linux/x86_64 (in-cluster),
+        # which skips this block and runs build-wheels directly in this image.
+        if ! command -v ssh >/dev/null 2>&1 || ! command -v rsync >/dev/null 2>&1; then
+          dnf install -y openssh-clients rsync
+        fi
 
         chmod 0400 ~/.ssh/id_rsa
 
