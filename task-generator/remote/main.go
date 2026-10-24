@@ -106,7 +106,9 @@ func convertToSsh(task *tektonapi.Task) {
 	}
 	// Unique per-arch tags for matrixed multi-platform builds (same as buildah-remote).
 	// IMAGE_APPEND_PLATFORM defaults to false; pipelines set it true with a matrix.
-	adjustRemoteImage := `if [ "${IMAGE_APPEND_PLATFORM}" == "true" ]; then
+	// Use ${IMAGE:-} so steps with set -u (e.g. collect-build-files) do not fail
+	// when IMAGE is only defined on create-oci-artifact.
+	adjustRemoteImage := `if [ "${IMAGE_APPEND_PLATFORM}" == "true" ] && [ -n "${IMAGE:-}" ]; then
   IMAGE="${IMAGE}-${PLATFORM//[^a-zA-Z0-9]/-}"
   export IMAGE
 fi
@@ -184,11 +186,12 @@ if ! [[ $IS_LOCALHOST ]]; then
   # Share a single ssh connection to the build VM between every ssh and rsync
   # invocation below. ControlMaster only multiplexes if a ControlPath is set,
   # and ControlPersist keeps the master alive between invocations.
+  # Note: OpenSSH rejects inline "#" comments on config value lines.
   cat >~/.ssh/config <<'SSHCONFIGEOF'
 Host *
   ControlMaster auto
   ControlPath ~/.ssh/control-%C
-  ControlPersist yes # should persist for the lifetime of the task pod
+  ControlPersist yes
 SSHCONFIGEOF
   chmod 0600 ~/.ssh/config
 
